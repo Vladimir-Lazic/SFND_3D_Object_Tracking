@@ -1,4 +1,3 @@
-
 /* INCLUDES FOR THIS PROJECT */
 #include <cmath>
 #include <fstream>
@@ -105,7 +104,7 @@ int main(int argc, const char *argv[])
     double sensorFrameRate = 10.0 / imgStepWidth; // frames per second for Lidar and camera
     int dataBufferSize = 2;       // no. of images which are held in memory (ring buffer) at the same time
     vector<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
-    bool bVis = false;            // visualize results
+    bool bVis = true;            // visualize results
 
     /* MAIN LOOP OVER ALL IMAGES */
 
@@ -164,14 +163,11 @@ int main(int argc, const char *argv[])
         bVis = true;
         if (bVis)
         {
-            show3DObjects((dataBuffer.end() - 1)->boundingBoxes, cv::Size(4.0, 20.0), cv::Size(2000, 2000), true);
+            show3DObjects((dataBuffer.end() - 1)->boundingBoxes, cv::Size(4.0, 20.0), (dataBuffer.end() - 1)->cameraImg.size(), true);
         }
         bVis = false;
 
         cout << "#4 : CLUSTER LIDAR POINT CLOUD done" << endl;
-
-        // REMOVE THIS LINE BEFORE PROCEEDING WITH THE FINAL PROJECT
-        continue; // skips directly to the next image without processing what comes beneath
 
         /* DETECT IMAGE KEYPOINTS */
 
@@ -257,10 +253,8 @@ int main(int argc, const char *argv[])
             //// TASK FP.1 -> match list of 3D objects (vector<BoundingBox>) between current and previous frame
             ///(implement ->matchBoundingBoxes)
             map<int, int> bbBestMatches;
-            matchBoundingBoxes(
-                matches, bbBestMatches, *(dataBuffer.end() - 2),
-                *(dataBuffer.end() -
-                  1)); // associate bounding boxes between current and previous frame using keypoint matches
+            matchBoundingBoxes(matches, bbBestMatches, *(dataBuffer.end() - 2), *(dataBuffer.end() - 1));
+            // associate bounding boxes between current and previous frame using keypoint matches
             //// EOF STUDENT ASSIGNMENT
 
             // store matches in current data frame
@@ -306,8 +300,8 @@ int main(int argc, const char *argv[])
 
                     //// STUDENT ASSIGNMENT
                     //// TASK FP.3 -> assign enclosed keypoint matches to bounding box (implement ->
-                    ///clusterKptMatchesWithROI) / TASK FP.4 -> compute time-to-collision based on camera (implement ->
-                    ///computeTTCCamera)
+                    /// clusterKptMatchesWithROI) / TASK FP.4 -> compute time-to-collision based on camera (implement ->
+                    /// computeTTCCamera)
                     double ttcCamera;
                     clusterKptMatchesWithROI(*currBB, (dataBuffer.end() - 2)->keypoints,
                                              (dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->kptMatches);
