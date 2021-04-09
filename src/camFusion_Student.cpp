@@ -2,6 +2,7 @@
 #include "dataStructures.h"
 #include <algorithm>
 #include <iostream>
+#include <map>
 #include <numeric>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -156,5 +157,56 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev, std::vector<Lidar
 void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bbBestMatches, DataFrame &prevFrame,
                         DataFrame &currFrame)
 {
-    // ...
+
+    std::multimap<int, int> matches_map{}; // multimap for storing all bbox matches
+    int number_of_bboxes = prevFrame.boundingBoxes.size();
+    for (auto keypoint_match : matches)
+    {
+        cv::KeyPoint previous_keypoint = prevFrame.keypoints[keypoint_match.queryIdx];
+        cv::KeyPoint current_keypoint = currFrame.keypoints[keypoint_match.trainIdx];
+
+        int previous_bbox_id = -1;
+        int current_bbox_id = -1;
+
+        // Get the box id containing the keypoints
+        for (auto bbox : prevFrame.boundingBoxes)
+        {
+            if (bbox.roi.contains(previous_keypoint.pt))
+            {
+                previous_bbox_id = bbox.boxID;
+            }
+        }
+
+        for (auto bbox : currFrame.boundingBoxes)
+        {
+            if (bbox.roi.contains(current_keypoint.pt))
+            {
+                current_bbox_id = bbox.boxID;
+            }
+        }
+
+        // If ids are found add to the multimap
+        if (previous_bbox_id != -1 && current_bbox_id != -1)
+        {
+            matches_map.insert({current_bbox_id, previous_bbox_id});
+        }
+    }
+
+    for (auto current_frame_bbox : currFrame.boundingBoxes)
+    {
+        // Get all matches containing the same key
+        auto matched_ids = matches_map.equal_range(current_frame_bbox.boxID);
+        std::vector<int> count(number_of_bboxes + 1, 0);
+
+        for (auto it = matched_ids.first; it != matched_ids.second; it++)
+        {
+            count[(*it).second] += 1;
+        }
+
+        // Get the index of max element in counter vector
+        std::vector<int>::iterator max_element = std::max_element(count.begin(), count.end());
+        int max_element_index = std::distance(count.begin(), max_element);
+
+        bbBestMatches.insert({max_element_index, current_frame_bbox.boxID});
+    }
 }
