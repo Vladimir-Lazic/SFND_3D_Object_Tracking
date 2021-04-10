@@ -178,7 +178,7 @@ int main(int argc, const char *argv[])
 
         // extract 2D keypoints from current image
         vector<cv::KeyPoint> keypoints; // create empty feature list for current image
-        string detectorType = "SHITOMASI";
+        string detectorType = "FAST";
 
         try
         {
@@ -257,7 +257,7 @@ int main(int argc, const char *argv[])
             matchBoundingBoxes(matches, bbBestMatches, *(dataBuffer.end() - 2), *(dataBuffer.end() - 1));
             // associate bounding boxes between current and previous frame using keypoint matches
             //// EOF STUDENT ASSIGNMENT
-            
+
             // store matches in current data frame
             (dataBuffer.end() - 1)->bbMatches = bbBestMatches;
 
@@ -326,6 +326,12 @@ int main(int argc, const char *argv[])
                         string windowName = "Final Results : TTC";
                         cv::namedWindow(windowName, 4);
                         cv::imshow(windowName, visImg);
+                        bool save_to_file = false;
+                        if (save_to_file)
+                        {
+                            string image_output = "../images/image_" + std::to_string(imgIndex) + ".png";
+                            cv::imwrite(image_output, visImg);
+                        }
                         cout << "Press key to continue to next frame" << endl;
                         cv::waitKey(0);
                     }

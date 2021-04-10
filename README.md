@@ -1,14 +1,50 @@
 # SFND 3D Object Tracking
 
-Welcome to the final project of the camera course. By completing all the lessons, you now have a solid understanding of keypoint detectors, descriptors, and methods to match them between successive images. Also, you know how to detect objects in an image using the YOLO deep-learning framework. And finally, you know how to associate regions in a camera image with Lidar points in 3D space. Let's take a look at our program schematic to see what we already have accomplished and what's still missing.
+[//]: # (Image References)
 
-<img src="images/course_code_structure.png" width="779" height="414" />
+[image1]: ./images/course_code_structure.png "Architecture"
+[image2]: ./images/detection.gif "Detection"
+[image3]: ./images/lidarttc.png "Lidar TTC"
+[image4]: ./images/image_16.png "Img1"
+[image5]: ./images/image_17.png "Img2"
+[image6]: ./images/image_18.png "Img3"
 
-In this final project, you will implement the missing parts in the schematic. To do this, you will complete four major tasks: 
-1. First, you will develop a way to match 3D objects over time by using keypoint correspondences. 
-2. Second, you will compute the TTC based on Lidar measurements. 
-3. You will then proceed to do the same using the camera, which requires to first associate keypoint matches to regions of interest and then to compute the TTC based on those matches. 
-4. And lastly, you will conduct various tests with the framework. Your goal is to identify the most suitable detector/descriptor combination for TTC estimation and also to search for problems that can lead to faulty measurements by the camera or Lidar sensor. In the last course of this Nanodegree, you will learn about the Kalman filter, which is a great way to combine the two independent TTC measurements into an improved version which is much more reliable than a single sensor alone can be. But before we think about such things, let us focus on your final project in the camera course. 
+![alt text][image2]
+# Project overview
+Bellow I will address each point in the [project rubric](https://review.udacity.com/#!/rubrics/2550/view)
+
+The overall architecture of the project is described in this image:
+![alt text][image1]
+
+## FP.1 Match 3D Objects
+The first step in implementing this project was the keypoint matching. Using a combination of detectors and descriptors to extract the object keypoints on a sequence of images we are able to match keypoints in between two consecutive images. These are keypoints matches. Also using YOLO deep learning algorithm we can get the bounding boxes on each object on the image.
+
+The object of this step is to achieve matching of bounding boxes detected by the YOLO algorithm. This is done by applying the following steps:
+- Looping over the keypoint matches for the previous and current frame and determining which keypoint belongs to which bounding box 
+- Storing the bounding box ids in a multimap. A multimap is used because id allows multiple pairs that have the same key value
+- Looping over all the bounding boxes in the current frame and counting the number of occurrences for each matches bounding box in previous image and counting all the matches 
+- Determining the maximum number of occurrences for a match of bounding box pairs 
+## FP.2 Compute Lidar-based TTC
+Computing TTC based on lidar measurements is done by first filtering lidar points. We want to eliminate the points that are in the lanes different from ego lane and the points that are reflection of the vehicle hood. We only use the lidar points which have the y values that indicates that they are in the vehicle ego lane. For filtering the x values we take the average values of all the lidar points x values in the vehicle ego lane. Using this we take an average closest x values of lidar points. This is done for both the previous and current frame. After filtering lidar points and extracting the average closest x, then we only apply the TTC formula for the constant velocity model. 
+
+![alt text][image3]
+## FP.3 Associate Keypoint Correspondences with Bounding Boxes
+For this step we loop over the keypoint matches for the previous and the current frame to determine which current frame keypoints are contained in the bounding box region of interest. Because there are outlies among the keypoints matches we filter the matches using a distance mean threshold. We determine the mean distance between keypoints mathces and scale it by 0.75 and take only the matches that are bellow that threshold. 
+## FP.4 Compute Camera-based TTC
+After performing keypoint correspondences with bounding boxes we use the perform the TTC computation for the camera data.
+## FP.5 Performance Evaluation 1
+The main errors in the Lidar-based TTC computation come from the Lidar characteristics. Lidar points are sometimes reflected by the hood of the ego vehicle. These points make it appear as if there is an obstacle really close and they need to be filtered out. Other issues come from unstable lidar points reflected by the preceding vehicle reflective surfaces. 
+
+In the last three images in the tested sequence we se a jump in the TTC calculation for the Lidar. 
+
+![alt text][image4]
+
+![alt text][image5]
+
+![alt text][image6]
+
+## FP.6 Performance Evaluation 2
+After running all the detector-descriptor to compare the performance of each combination we see that detectors such as HARRIS and ORB produce unreliable results. HARRIS performed the lowest due to is poor keypoints detections. Detectors such as FAST, SIFT and AKAZE produce the most stabile results with no oscillations of the TTC measurements in between frame. Others combinations produce some jumps in the TTC calculation in between frames. 
 
 ## Dependencies for Running Locally
 * cmake >= 2.8
