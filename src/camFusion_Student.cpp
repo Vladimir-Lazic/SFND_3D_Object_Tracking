@@ -151,7 +151,32 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
 void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev, std::vector<LidarPoint> &lidarPointsCurr,
                      double frameRate, double &TTC)
 {
-    // ...
+    // Remove measurements on the road surface and with low reflectivity
+    double laneWidth = 4.0; // assumed width of the ego lane
+    double nearest_x_current = 0.0;
+    double nearest_x_previous = 0.0;
+
+    for (LidarPoint lidar_point : lidarPointsPrev)
+    {
+        if (abs(lidar_point.y) <= laneWidth / 2.0)
+        {
+            nearest_x_previous += lidar_point.x;
+        }
+    }
+    nearest_x_previous = nearest_x_previous / lidarPointsPrev.size();
+
+    for (LidarPoint lidar_point : lidarPointsCurr)
+    {
+        if (abs(lidar_point.y) <= laneWidth / 2.0)
+        {
+            nearest_x_current += lidar_point.x;
+        }
+    }
+    nearest_x_current = nearest_x_current / lidarPointsCurr.size();
+
+    // compute TTC from both measurements
+    double dT = 1 / frameRate;
+    TTC = nearest_x_current * dT / (nearest_x_previous - nearest_x_current);
 }
 
 void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bbBestMatches, DataFrame &prevFrame,

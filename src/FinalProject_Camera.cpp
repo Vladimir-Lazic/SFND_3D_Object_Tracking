@@ -257,12 +257,7 @@ int main(int argc, const char *argv[])
             matchBoundingBoxes(matches, bbBestMatches, *(dataBuffer.end() - 2), *(dataBuffer.end() - 1));
             // associate bounding boxes between current and previous frame using keypoint matches
             //// EOF STUDENT ASSIGNMENT
-
-            for (auto match : bbBestMatches)
-            {
-                std::cout << "Current bbox id : " << match.first << " Second bbox id: " << match.second << std::endl;
-            }
-
+            
             // store matches in current data frame
             (dataBuffer.end() - 1)->bbMatches = bbBestMatches;
 
