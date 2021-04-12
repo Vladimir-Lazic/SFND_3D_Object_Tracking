@@ -21,7 +21,7 @@ The first step in implementing this project was the keypoint matching. Using a c
 
 The object of this step is to achieve matching of bounding boxes detected by the YOLO algorithm. This is done by applying the following steps:
 - Looping over the keypoint matches for the previous and current frame and determining which keypoint belongs to which bounding box 
-- Storing the bounding box ids in a multimap. A multimap is used because id allows multiple pairs that have the same key value
+- Storing the bounding box ids in a multimap. A multimap is used because it allows multiple pairs that have the same key value
 - Looping over all the bounding boxes in the current frame and counting the number of occurrences for each matches bounding box in previous image and counting all the matches 
 - Determining the maximum number of occurrences for a match of bounding box pairs 
 ## FP.2 Compute Lidar-based TTC
